@@ -1,0 +1,33 @@
+[project]
+name = "changepoint-detector"
+authors = [{name = "Brendan Schlaman", email = "brendan.schlaman@gmail.com"}]
+requires-python = ">=3.9"
+readme = "README.md"
+dynamic = ["version"]
+dependencies = [
+    "jsonschema",
+    "colorama",
+    "prettytable",
+    "pandas",
+    "pandas-stubs",
+    "numpy",
+    "bpyutils @ git+https://github.com/bschlaman/bpy-utils.git",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+dev = ["pytest", "black", "isort", "flake8", "ipython", "pygls"]
+
+[project.scripts]
+changepoint-detector = "changepoint_detector.cli.cli:main"
+
+[tool.pyright]
+include = ["src"]
+exclude = [
+    "**/node_modules",
+    "**/__pycache__",
+]
+pythonPlatform = "Linux"
