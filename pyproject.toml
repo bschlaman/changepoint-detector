@@ -10,7 +10,8 @@ dependencies = [
     "prettytable",
     "pandas",
     "pandas-stubs",
-    "numpy",
+    "numpy==1.26.1",
+    "hmmlearn",
     "bpyutils @ git+https://github.com/bschlaman/bpy-utils.git",
 ]
 

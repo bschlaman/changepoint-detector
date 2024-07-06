@@ -8,7 +8,7 @@ from bpyutils.formatting.colors import bld, blu, mag
 import changepoint_detector.modules.detection.entry
 
 logging.basicConfig(
-    format="[%(levelname)-8s] %(name)s %(message)s",
+    format="[%(levelname)-8s] (%(name)s) %(message)s",
     level=logging.DEBUG,
 )
 
@@ -41,7 +41,7 @@ def main():
         "--file",
         "-f",
         metavar="name_of_datafile",
-        help="The csv file to load with data",
+        help="relative path of input csv file",
     )
 
     args = parser.parse_args()
@@ -54,4 +54,4 @@ def main():
     if not args.file:
         parser.error("must specify a csv file with time series data")
 
-    changepoint_detector.modules.detection.entry.run()
+    changepoint_detector.modules.detection.entry.run(args.file)
