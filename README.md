@@ -26,9 +26,10 @@ in partition space.
 
 ### Evaluation criteria
 
-- Akaike Information Criterion (AIC): $2 k - 2 \ln L$
-- Hannan–Quinn Information Criterion (HQIC): $k \ln n - 2 \ln L$
-- Bayesian Information Criterion (BIC): $2 k \ln \ln n - 2 \ln L$
+The paper penalizes the training and evaluates performance
+across model classes with Akaike Information Criterion (AIC),
+Hannan–Quinn Information Criterion (HQIC), and Bayesian Information Criterion (BIC).
+For now, this tool uses only BIC to compare results across models.
 
 ### Detection methods
 
@@ -37,17 +38,54 @@ in partition space.
 Hidden Markov Models (HMMs) is implemented using `hmmlearn`.
 Like in the paper, $N = 1, \dots, 8$ hidden states are considered.
 
+#### Likelihood ratio
+
+This tools makes use of the package `ruptures`,
+based on [1]
+
+#### Changepoint detection methods
+
+TODO
+
+#### Bayesian methods
+
+TODO
 
 ## 📄 How to use
 
-This tool can be used as a library,
-but it also comes with a CLI.
+This tool can be used as a library to use methods individually,
+or it can be used as a CLI to get a summary of each method.
 
 ```bash
 changepoint-detector -f sp500_daily_price.csv
 ```
 
+The input data must be a csv of daily price data
+in the following format:
+```csv
+Date,AAPL
+1980-12-12,0.09905774146318436
+1980-12-15,0.09388983249664307
+```
+
+This is the default format when exporting price data from `yfinance`.
+```python
+yf.download("SPY")["Adj Close"].to_csv("./spy.csv")
+```
+Only a single security is supported at this time.
+
 ## 📄 Devlog
 
 - 3 statistics: mean, var, and mean + var
 - for some reason, `numpy==1.26.1` is required for `hmmlearn` to behave nicely and converge
+- `python3.11` is a no-go; `pychangepoint` can't install for some reason.
+
+## 📄 TODO
+
+- usic BIC to find optimal penalty hyperparam for LRM
+- usic BIC to score all results of final changepoints
+- GLR test for CM
+- convert HMM back to individual instances
+- "tool is indeded to benchmark methods"
+
+[1] C. Truong, L. Oudre, N. Vayatis. Selective review of offline change point detection methods. Signal Processing, 167:107299, 2020. [journal] [pdf]

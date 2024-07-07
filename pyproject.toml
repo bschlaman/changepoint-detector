@@ -11,6 +11,11 @@ dependencies = [
     "pandas",
     "pandas-stubs",
     "numpy==1.26.1",
+    "Cython",
+    "ipykernel",
+    "scipy",
+    "changepoint",
+    "changepoint-cython",
     "hmmlearn",
     "bpyutils @ git+https://github.com/bschlaman/bpy-utils.git",
 ]

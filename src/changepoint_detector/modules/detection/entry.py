@@ -4,6 +4,7 @@ import pandas as pd
 import prettytable
 import changepoint_detector.utils.data_load
 import changepoint_detector.modules.detection.controller
+from changepoint_detector.modules.detection import strategy
 from bpyutils.formatting.colors import bld, yel
 
 log = logging.getLogger(__name__)
@@ -16,7 +17,8 @@ def run(path: str):
     3. controller
     4. compute strategy fan-out
     5. aggregator
-    6. view
+    6. postprocessing
+    7. view
     """
     log.debug(f"attempting to load {path}")
     df = changepoint_detector.utils.data_load.load_from_file_dataframe(
@@ -40,10 +42,12 @@ def preprocess(df: pd.DataFrame):
     df.dropna(inplace=True)
 
 
-def display_res(res: dict[str, np.ndarray]):
-    pt = prettytable.PrettyTable([bld("strategy"), bld("changepoints")])
+def display_res(res: dict[strategy.ChangepointDetectStrategy, int]):
+    def _fmt_name(strat: strategy.ChangepointDetectStrategy) -> str:
+        return strat.display_name
+    pt = prettytable.PrettyTable([bld("strategy"), bld("num changepoints")])
     pt.float_format = ".5"
     pt.align = "l"
     for strat, chpts in res.items():
-        pt.add_row([yel(strat), chpts])
+        pt.add_row([yel(_fmt_name(strat)), chpts])
     print(pt)
