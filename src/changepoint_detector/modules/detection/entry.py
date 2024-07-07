@@ -29,9 +29,14 @@ def run(path: str):
     log.debug(f"loaded time series with {len(df)} rows")
     log.debug(f"using index: {df.index.__class__.__name__}")
     preprocess(df)
+
     controller = changepoint_detector.modules.detection.controller.Controller()
-    res = controller.process_sync(df['logret'].to_numpy())
-    display_res(res)
+
+    res = controller.process_sync(df["logret"].to_numpy())
+    metric_aic = controller.calculate_metric_aic(df["logret"].to_numpy())
+    metric_bic = controller.calculate_metric_bic(df["logret"].to_numpy())
+
+    display_res(res, metric_aic, metric_bic)
 
 
 def preprocess(df: pd.DataFrame):
@@ -42,12 +47,19 @@ def preprocess(df: pd.DataFrame):
     df.dropna(inplace=True)
 
 
-def display_res(res: dict[strategy.ChangepointDetectStrategy, int]):
+def display_res(
+    num_changepoints: dict[strategy.ChangepointDetectStrategy, int],
+    aic: dict[strategy.ChangepointDetectStrategy, float],
+    bic: dict[strategy.ChangepointDetectStrategy, float],
+):
     def _fmt_name(strat: strategy.ChangepointDetectStrategy) -> str:
         return strat.display_name
-    pt = prettytable.PrettyTable([bld("strategy"), bld("num changepoints")])
+
+    pt = prettytable.PrettyTable(
+        [bld("strategy"), bld("num changepoints"), bld("aic"), bld("bic")]
+    )
     pt.float_format = ".5"
     pt.align = "l"
-    for strat, chpts in res.items():
-        pt.add_row([yel(_fmt_name(strat)), chpts])
+    for strat, n_cpts in num_changepoints.items():
+        pt.add_row([yel(_fmt_name(strat)), n_cpts, aic[strat], bic[strat]])
     print(pt)

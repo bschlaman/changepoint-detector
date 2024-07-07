@@ -23,6 +23,9 @@ class ChangepointDetectStrategy(abc.ABC):
     def aic(self, ts: np.ndarray) -> float:
         return 2 * self.get_n_params() - 2 * self.get_log_likelihood(ts)
 
+    def bic(self, ts: np.ndarray) -> float:
+        return np.log(len(ts)) * self.get_n_params() - 2 * self.get_log_likelihood(ts)
+
     @property
     def display_name(self):
         return self.__class__.__name__
@@ -37,6 +40,38 @@ class ChangepointDetectStrategy(abc.ABC):
     def __call__(self, ts: np.ndarray) -> np.ndarray: ...
 
 
+class OneRegimePerQuarter(ChangepointDetectStrategy):
+    TRADING_DAYS_PER_QUARTER = 63
+
+    def __init__(self):
+        self.cpts = np.array([])
+
+    def __call__(self, ts: np.ndarray) -> np.ndarray:
+        self.cpts = (
+            np.arange(len(ts) // self.TRADING_DAYS_PER_QUARTER)
+            * self.TRADING_DAYS_PER_QUARTER
+        )
+        return self.cpts
+
+    @property
+    def display_name(self):
+        return "[BASELINE] " + super().display_name
+
+    def get_n_params(self) -> int:
+        return 1
+
+    def get_log_likelihood(self, ts: np.ndarray) -> float:
+        assert len(self.cpts)
+        cpts = self.cpts.copy()
+        if self.cpts[-1] != len(ts) - 1:
+            np.append(cpts, len(ts) - 1)
+        ll = 0
+        for i, cpt in enumerate(cpts):
+            segment = ts[0 if i == 0 else cpts[i - 1] : cpt]
+            ll += scipy.stats.norm(segment.mean(), segment.std()).logpdf(segment).sum()
+        return ll
+
+
 class RandChangepoints(ChangepointDetectStrategy):
     def __init__(self, n: int):
         self.n = n
@@ -48,20 +83,19 @@ class RandChangepoints(ChangepointDetectStrategy):
 
     @property
     def display_name(self):
-        return "[BENCHMARK] " + super().display_name + f" n={self.n}"
+        return "[BASELINE] " + super().display_name + f" n={self.n}"
 
     def get_n_params(self) -> int:
         return self.n
 
     def get_log_likelihood(self, ts: np.ndarray) -> float:
-        assert self.cpts
+        assert len(self.cpts)
         cpts = self.cpts.copy()
         if self.cpts[-1] != len(ts) - 1:
             np.append(cpts, len(ts) - 1)
         ll = 0
         for i, cpt in enumerate(cpts):
-            segment = ts[0 if i == 0 else cpt[i - 1] : cpt]
-            print(segment)
+            segment = ts[0 if i == 0 else cpts[i - 1] : cpt]
             ll += scipy.stats.norm(segment.mean(), segment.std()).logpdf(segment).sum()
         return ll
 
@@ -83,7 +117,7 @@ class AMOC(ChangepointDetectStrategy):
 
     @property
     def display_name(self):
-        return "[BENCHMARK] " + super().display_name
+        return "[BASELINE] " + super().display_name
 
     def get_n_params(self) -> int:
         return 1
@@ -113,7 +147,7 @@ class HiddenMarkovModel(ChangepointDetectStrategy):
     @property
     def display_name(self):
         return (
-            ("[BENCHMARK] " if self.n_states == 1 else "")
+            ("[BASELINE] " if self.n_states == 1 else "")
             + super().display_name
             + f" (n={self.n_states})"
         )
@@ -146,6 +180,7 @@ class HiddenMarkovModel(ChangepointDetectStrategy):
         return sum(self.model._get_n_fit_scalars_per_param().values())
 
     def get_log_likelihood(self, ts: np.ndarray) -> float:
+        ts = self._preprocess(ts)
         return self.model.score(ts)
 
 
@@ -169,14 +204,13 @@ class LikelihoodRatioMethod(ChangepointDetectStrategy):
         return len(self.cpts) + 2 * (1 + len(self.cpts))
 
     def get_log_likelihood(self, ts: np.ndarray) -> float:
-        assert self.cpts
+        assert len(self.cpts)
         cpts = self.cpts.copy()
         if self.cpts[-1] != len(ts) - 1:
             np.append(cpts, len(ts) - 1)
         ll = 0
         for i, cpt in enumerate(cpts):
-            segment = ts[0 if i == 0 else cpt[i - 1] : cpt]
-            print(segment)
+            segment = ts[0 if i == 0 else cpts[i - 1] : cpt]
             ll += scipy.stats.norm(segment.mean(), segment.std()).logpdf(segment).sum()
         return ll
 
