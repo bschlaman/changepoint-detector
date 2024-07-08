@@ -5,7 +5,7 @@ import prettytable
 import changepoint_detector.utils.data_load
 import changepoint_detector.modules.detection.controller
 from changepoint_detector.modules.detection import strategy
-from bpyutils.formatting.colors import bld, yel
+from bpyutils.formatting.colors import bld, yel, dim
 
 log = logging.getLogger(__name__)
 
@@ -32,6 +32,7 @@ def run(path: str):
 
     controller = changepoint_detector.modules.detection.controller.Controller()
 
+    log.info(f"fitting {len(controller.strategies)} models...")
     res = controller.process_sync(df["logret"].to_numpy())
     metric_aic = controller.calculate_metric_aic(df["logret"].to_numpy())
     metric_bic = controller.calculate_metric_bic(df["logret"].to_numpy())
@@ -45,6 +46,8 @@ def preprocess(df: pd.DataFrame):
     df.rename(columns={security: "price"}, inplace=True)
     df["logret"] = df.apply(np.log).diff()
     df.dropna(inplace=True)
+    mask = df["logret"].abs() <= 0.0001
+    df.drop(df[mask].index, inplace=True)
 
 
 def display_res(
@@ -62,4 +65,8 @@ def display_res(
     pt.align = "l"
     for strat, n_cpts in num_changepoints.items():
         pt.add_row([yel(_fmt_name(strat)), n_cpts, aic[strat], bic[strat]])
+    pt.add_rows([
+        [dim("ChangepointMethods (TODO)"), "-", "-","-"],
+        [dim("BayesianMethods (TODO)"), "-", "-","-"],
+    ])
     print(pt)

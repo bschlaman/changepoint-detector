@@ -50,7 +50,7 @@ class OneRegimePerQuarter(ChangepointDetectStrategy):
         self.cpts = (
             np.arange(len(ts) // self.TRADING_DAYS_PER_QUARTER)
             * self.TRADING_DAYS_PER_QUARTER
-        )
+        )[1:]
         return self.cpts
 
     @property
@@ -68,7 +68,7 @@ class OneRegimePerQuarter(ChangepointDetectStrategy):
         ll = 0
         for i, cpt in enumerate(cpts):
             segment = ts[0 if i == 0 else cpts[i - 1] : cpt]
-            ll += scipy.stats.norm(segment.mean(), segment.std()).logpdf(segment).sum()
+            ll += scipy.stats.norm.logpdf(segment, loc=segment.mean(), scale=segment.std(ddof=1)).sum()
         return ll
 
 
@@ -79,7 +79,7 @@ class RandChangepoints(ChangepointDetectStrategy):
 
     def __call__(self, ts: np.ndarray) -> np.ndarray:
         assert self.n < len(ts)
-        return np.random.randint(0, len(ts), self.n)
+        return np.sort(np.random.randint(0, len(ts), self.n))
 
     @property
     def display_name(self):
@@ -96,7 +96,7 @@ class RandChangepoints(ChangepointDetectStrategy):
         ll = 0
         for i, cpt in enumerate(cpts):
             segment = ts[0 if i == 0 else cpts[i - 1] : cpt]
-            ll += scipy.stats.norm(segment.mean(), segment.std()).logpdf(segment).sum()
+            ll += scipy.stats.norm.logpdf(segment, loc=segment.mean(), scale=segment.std(ddof=1)).sum()
         return ll
 
 
@@ -126,8 +126,8 @@ class AMOC(ChangepointDetectStrategy):
         assert self.changepoint != -1
         seg0, seg1 = ts[: self.changepoint], ts[self.changepoint :]
         return (
-            scipy.stats.norm(ts.mean(), ts.std()).logpdf(seg0).sum()
-            + scipy.stats.norm(ts.mean(), ts.std()).logpdf(seg1).sum()
+            scipy.stats.norm.logpdf(seg0, loc=ts.mean(), scale=ts.std(ddof=1)).sum()
+            + scipy.stats.norm.logpdf(seg1, loc=ts.mean(), scale=ts.std(ddof=1)).sum()
         )
 
 
@@ -194,9 +194,9 @@ class LikelihoodRatioMethod(ChangepointDetectStrategy):
 
     def __call__(self, ts: np.ndarray) -> np.ndarray:
         df = self._preprocess(ts)
-        cpts, _ = algo_changepoints.pelt(df, pen_=3, minseg=1, method="mbic_meanvar")
+        cpts, _ = algo_changepoints.pelt(df, pen_=3, minseg=2, method="mbic_meanvar")
         log.debug(f"[LRM] found {len(cpts)} changepoints")
-        self.cpts = cpts
+        self.cpts = np.sort(cpts)
         return cpts
 
     def get_n_params(self) -> int:
@@ -211,7 +211,7 @@ class LikelihoodRatioMethod(ChangepointDetectStrategy):
         ll = 0
         for i, cpt in enumerate(cpts):
             segment = ts[0 if i == 0 else cpts[i - 1] : cpt]
-            ll += scipy.stats.norm(segment.mean(), segment.std()).logpdf(segment).sum()
+            ll += scipy.stats.norm.logpdf(segment, loc=segment.mean(), scale=segment.std(ddof=1)).sum()
         return ll
 
 

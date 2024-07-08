@@ -57,7 +57,7 @@ This tool can be used as a library to use methods individually,
 or it can be used as a CLI to get a summary of each method.
 
 ```bash
-changepoint-detector -f sp500_daily_price.csv
+changepoint-detector -f data/aapl.csv
 ```
 
 The input data must be a csv of daily price data
@@ -70,9 +70,12 @@ Date,AAPL
 
 This is the default format when exporting price data from `yfinance`.
 ```python
-yf.download("SPY")["Adj Close"].to_csv("./spy.csv")
+yf.download("SPY")["Adj Close"].to_csv("./spy_daily.csv")
 ```
 Only a single security is supported at this time.
+
+![sample output](./data/sample_output.png "Sample Output")
+
 
 ## 📄 Devlog
 
@@ -87,5 +90,6 @@ Only a single security is supported at this time.
 - GLR test for CM
 - convert HMM back to individual instances
 - "tool is indeded to benchmark methods"
+- find a solution for segments of length 1
 
 [1] C. Truong, L. Oudre, N. Vayatis. Selective review of offline change point detection methods. Signal Processing, 167:107299, 2020. [journal] [pdf]
