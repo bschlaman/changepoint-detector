@@ -14,7 +14,6 @@ dependencies = [
     "Cython",
     "ipykernel",
     "scipy",
-    "changepoint",
     "changepoint-cython",
     "hmmlearn",
     "bpyutils @ git+https://github.com/bschlaman/bpy-utils.git",

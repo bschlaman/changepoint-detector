@@ -15,8 +15,8 @@ It should not be relied upon for anything important! 😃
 
 ## 📊 Changepoints
 
-The **changepoints** of a time series $\{Y_t\}_{1:T}$
-form a partition $\rho_{1:T}$ of the set $\{1, \dots, T\}$
+The **changepoints** of a time series $`\{Y_t\}\_{1:T}`$
+form a partition $`\rho_{1:T}`$ of the set $\{1, \dots, T\}$
 such that certain statistical properties are the same
 within a sub-sequence and different between sub-sequences.
 
